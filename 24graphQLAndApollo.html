@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+		<style>
+			code{
+				background-color: rgba(0,0,0,.075);
+				font-weight: bold;
+			}
+			.subtitle{
+				font-size: 1.3rem;
+				font-weight: bold;
+				margin: 0;
+				padding: 5px;
+				margin-top: 5px;
+				background-color: rgba(0,0,0,.075);
+				text-align: center;
+			}
+			h3{
+				font-size: 2rem;
+				font-weight: bold;
+				margin: 0;
+				padding: 5px;
+				margin-top: 10px;
+			}
+			.paragraph{
+				margin: 0.5rem 0 0.5rem;
+			}
+			.tab{
+				margin: 0 1rem;
+			}
+			html{
+				scroll-behavior: smooth;
+			}
+			</style>
+
+		<title>24 GraphQL and Apollo</title>
+  	</head>
+  	<body>
+      
+    <div class="container">
+		<h1 class="display-3 text-center">24 GraphQL and Apollo<hr></h1>
+		<header>
+			<p class="paragraph">
+				Overall description.
+			</p>
+		</header>
+
+		<h2 id="00" class="subtitle">Index</h2>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th scope="col">#</th>
+					<th scope="col">Topic</th>
+					<th scope="col">Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th scope="row">1</th>
+					<td>
+						<a href="#01">topicName</a>
+					</td>
+					<td>
+						<code>Code or description</code>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<ul class="list-group">
+			<li class="list-group-item">
+				<a id="01" href="#00">Index</a>
+				<h2 class="subtitle">Intro to GraphQL</h2>
+				<p class="paragraph">
+					<strong>REST</strong>
+					<br>
+					GraphQL is a server language that wraps around a DB or Server that you can make requests to in a different way than using REST. It is a backend techonology. REST works using endopoints that give us different returns depending on the URL. I've already created a REST API, therefore I understand the theory around REST. With REST if you need to get the comments from a post you would need to do 3 requests, the user_id then the post_id, and finally the request for all of the comments from that post. At the same time, we don't need all of the data from these requests, we just needed the id for the user and the post, but we fetched the entirety of the data, this is called over-fetching. GraphQL tries to solve this.
+				</p>
+				<p class="paragraph">
+					<strong>GraphQL</strong>
+					<br>
+					With graphql we have one single endpint, usually <code>/graphql</code>. With this endpoint we do all of the CRUD operations. To the endpoint we pass either a query or a mutation. The basic difference is that a query is when we ask for data, and a mutation when we want to alter data. If we want a query, we send it a JSON like object zB <code>posts { id, title, content }</code> this would tell our endpoint that we want access to the post data and that we want the id, title, and content, only. This solves overfetching directly, and it saves us from having to be aware of all the different endpoints that the API has and how they work. If we add a new endpoint or alted the REST API, we would need to transform our frontend app to use this endpoint with the new URL. With GraphQL if the backend server changes, we don't need to be aware of it, we just need to know the shape of the data and we can create a new query using the same format if we need to. Our queries can also be nested, meaning that we can fetch comments related to a post directly with our JSON like query. 
+				</p>
+				<a id="02" href="#00">Index</a>
+				<h2 class="subtitle">GraphQL Playground</h2>
+				<p class="paragraph">
+					Yihua created a playground that uses GraphQL where we can practice the language <a href="https://www.crwn-clothing.com/"> here.</a> We will only practice queries. We start by declaring that using <code>query</code>. There is a Schema tab, that if working properly, will show you what data you can request and its structure. ! means that it is always there. We can see that Collections has an array of Item which have their own structure. GraphQL has Integer and Float, float being a number with decimal places. There is also a <code>collection: Collection</code> that tells us that <code>type Item</code> is part of the Collection collection. 
+				</p>
+				<p class="paragraph">
+					<strong>Query type</strong>
+					<br>
+					After that there is a <code>type Query</code> which tells us what we can query. We have <code>collections: [Collection!]!</code> which means that we can query for all the collections that will always have an array of Colletion. We have <code>collection(id: ID!): Collection</code> which means that we can query a Collection using the ID, which will return the single collection that matches. We don't have a ! after Collection because there is no guarantee that we will recieve a collection, in the case that we don't use a correct ID. We also have <code>getCollectionsByTitle(title: String): Collection</code> This is a query that allows us to use a title string to get the Collection we want, also not guaranteed. <em>These queries are created in the backend, meaning that that is what we have access to.</em>
+				</p>
+				<p class="paragraph">
+					<strong>Querying</strong>
+					We <code>query { collections { id title } }</code> and when we get a JSON response <code>{ "data" { "collections": [ { "id": "...", "title": "..." }, ... ] } }</code> with all our collections and the data we asked for. In our query we add <code>items { id name price } </code> which we run and now gives us the internal items of our collections. We <em>NEED</em> to add sub fields to our query, we cannot <code>items</code> and get everything, we need to specify what we want. The order <strong>Does NOT</strong> matter, but it <em>will reflect the response object</em> we get. 
+				</p>
+				<p class="paragraph">
+					<strong>Other Features of Playground</strong>
+					<br>
+					We have another tab called <strong>DOCS</strong> that is generated by our playground and has documentation about what we can query, what we get back, and descriptions about the types. If we look at the ID type we get that it is a scalar type that represents a unique Identifier. The <strong>scalar</strong> type means that it is a value that is not an object, or array, but a native type. We cannot query items individually because Yihua did not set a query for that because we don't use it in our App.  
+				</p>
+				<p class="paragraph">
+					<strong>Query by ...</strong>
+					<br>
+					We will do a query by id that we have access to, using <code>query { collection(id: "..."){ title } }</code>, which is just as we saw in the queries we have access to. This will return the collection with the title using the id we copied from our previous query. We <em>need</em> subfields for this. If we query using a false ID, we get a return object that has <code>"collection": null</code>. We then use our <code>getCollectionsByTitle(title: "hats") { ... }</code> which will fetch the colleciton using an item and returns what we query for it. The search <strong>is not case sensitive</strong>, which allows us to query the "Hats" collection using "hats". Our response also has <code>"data" { "getCollectionsByTitle": { ... } }</code> which shows the name of the query we used. 
+				</p>
+				<a id="03" href="#00">Index</a>
+				<h2 class="subtitle">Introduction to Apollo</h2>
+				<p class="paragraph">
+					We run <code>git clone https://github.com/ZhangMYihua/graphql-lesson.git graphql-crwn</code> which creates a new directory in our folder with the code from the repo. This Repo has almost the same code we had, but it has a Spinner Component that replaces our WithSpinner HOC, and just holds the normal spinner. Apollo allows us to use a spinner in a non HOC pattern. Apollo is the goto when working with GraphQL. We <code>yarn add apollo-boost react-apollo graphql</code> and then we <code>yarn</code> to install all of our node_modules. <strong>Note:</strong> I had a major problem and had to remove all the dependencies from the package.json and install them manually. 
+				</p>
+				<p class="paragraph">
+					<strong>Apollo</strong>
+					<br>
+					When we query our GraphQL server, Apollo will make sure to <em>cache</em> the data. If none of the data has changed, Apollo will return the cached version of the data. Apollo automatically manages cached data an resolves unnecessary fetches. In our index.js file we <code>import { ApolloProvider } from 'react-apollo';</code>. This is similar to the Redux provider, but it just gives our app access to the state in our Apollo. Then we <code>import { createHttpLink } from "apollo-link-http";</code> which is what will let our client connect to the /graphql endpoint. Then we <code>import { InMemoryCache } from 'apollo-cache-inmemory';</code> which is what will chache the data that we fetch through Apollo. Finally we <code>import { ApolloClient } from 'apollo-boost';</code>. 
+				</p>
+				<p class="paragraph">
+					<strong>Index.js</strong>
+					<br>
+					We start by <code>const httpLink = createHttpLink({ uri: 'https://crwn-clothing.com' })</code> which is the same endpoint we used for our playground. Then we <code>const cache = new InMemoryCache();</code> which instanciates our InMemoryCache() class that will hold the Apollo cache. Then we set the client <code>const client = new ApolloClient({ link: httpLink, cache, })</code> which is the object we pass to create the client that has the point where we will query, and where the cache will be stored, which we used cache, shorthand in. Then we wrap our App in <code>ApolloProvider client={client}</code> which will use the client object we created. We run a test query, which requires us to also import <code>gql</code> from apollo-boost. Then we do <code>client.query({ query: gql` ... ` })</code> which is what makes the app understand what the GraphQL query is. Inside we use the query we had in the playground. This returns a promise, therefore we <code>.then(res => console.log(res))</code> and now if we load our app we can see the response from the GraphQL server.
+				</p>
+				<a id="04" href="#00">Index</a>
+				<h2 class="subtitle">Apollo Container</h2>
+				<p class="paragraph">
+					We will start replacing our data fetching in our CollectionsOverview Component. 
+				</p>
+			</li>
+		</ul>
+	</div>
+
+	<!-- Optional JavaScript -->
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+	</body>
+</html>
