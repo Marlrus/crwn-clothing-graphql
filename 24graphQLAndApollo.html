@@ -139,7 +139,22 @@
 				<p class="paragraph">
 					<strong>Query with Variables</strong>
 					<br>
-					
+					We remove Redux from our Collection Component. We create the container file with our React, Query, gql, Spinner, and CollectionPage. We start by creating the query <code>const GET_COLLECTION_BY_TITLE = gql` ... `</code> Since we are using a query that uses a variable we have to use something that looks like a Fn: <code>query getCollectionsByTitle($title: String!) { ... }</code> this takes a param $title that is a String always. Then Inside we do the query <code>{ getCollectionsByTitle(title: $title) { ... } }</code> Which takes the value for $title form the param and passes it as title. 
+				</p>
+				<p class="paragraph">
+					<strong>Passing Param to Query</strong>
+					<br>
+					We set up our query as a Fn, now we need to pass the value. We create <code>const CollectionPageContainer = ({ match }) => ( ... )</code> where we take match from our Router, which we will use to get the title that we want for the query. We then use the Query Component <code>Query query={GET_COLLECTION_BY_TITLE} variables={{ title: match.params.collectionId }}</code> which will get the prop variables which it will pass to the query we created. Here we pass an object that has the title prop, because it is what the Fn expects. Then we create our Fn where we destructure loading and data. If loading is true we return Spinner. If not we need to destructure the data from the query getCollectionsByTitle from our data <code>const { getCollectionsByTitle } = data </code> which will return our component with the data <code>CollectionPage collection={getCollectionsByTitle}</code>. <strong>Note:</strong> This is beacuse the response has this structure <code>data { queryName { ... } }</code> meaning that the collection is nested inside data.getCollectionsByTitle. Then we just go to ShopPage and change the import to <code>{ default as CollectionPage }</code>, and our App works. 
+				</p>
+				<a id="04" href="#00">Index</a>
+				<h2 class="subtitle">GraphQL vs Redux</h2>
+				<p class="paragraph">
+					We are familiar with the data flow in Redux and how it handles everything through actions and reducers. Apollo does the same thing, manage state, but it does it using a different structure. We have our data/state stored in our Local Cache, which we have instanciated. However, whether we fetch data locally or asynchronously, we do it using a query or mutation, which automatically detects whether the data should be fetched or if it is in the local cache. Apollo uses <strong>Resolvers</strong> which are the Fns that have our queries and mutations and process them. 
+				</p>
+				<p class="paragraph">
+					<strong>Apollo flow overview</strong>
+					<br>
+					Apollo works unidirectionally just like Redux. Our Components fire apollo requests. The requests are taken by our Resolvers (queries and mutations), here they have two routes: local, or external. If the query has been done and the data is already in the cache, Apollo will skip making a server request and just use the data in the Local Cache and pass the data to our component as porps. If the data is not there, it fires an External query or mutation, which can get/update/delete data on the backend, which then goes to our GraphQL Server, which then makes a SQL/NoSQL request to update the data in the DB. Then it gets a reply from the DB and returns it to the Resolver, which then passes or merges the data in the Local Cache and displays it in our components. 
 				</p>
 			</li>
 		</ul>
