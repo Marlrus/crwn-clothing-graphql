@@ -129,7 +129,17 @@
 				<a id="04" href="#00">Index</a>
 				<h2 class="subtitle">Apollo Container</h2>
 				<p class="paragraph">
-					We will start replacing our data fetching in our CollectionsOverview Component. 
+					We will start replacing our data fetching in our CollectionsOverview Component. We remove all of Redux from here. We create a file in the same dir <strong>collections-overview.container.jsx</strong>. Here we import React, { Query } from react-apollo, and { gql } from apollo-boost. Then we import our CollectionsOverview Component and Spinner Component. We create our query <code>const GET_COLLECTIONS = gql`...`</code> which is the query we will use to get the collections with the data that we want. Then we create the <code>const CollectionsOverviewContainer = () => ( ... )</code> which is the Component. Inside we return a <code>&lt;Query query={GET_COLLECTIONS}&gt;</code> inside of it we get back a Fn that has a bunch of data. We destructure what we want <code>{( {loading, error, data } }) => { ... }</code> Here we will console.log all of them just to see them. But our logic will be <code>if (loading) return Spinner</code> and then <code>return CollectionsOverview collections={data.collections}</code> which uses our component and passes the data. All GraphQL queries have the data property and inside of it we get the query we used with the data we queried.
+				</p>
+				<p class="paragraph">
+					<strong>Using our Container</strong>
+					<br>
+					We go to our <strong>ShopPage</strong> Component where we will import our container. However, so we have a clearer message in our code we will do <code>import { default as CollectionsOverview } from '../../components/collections-overview/collections-overview.container';</code> which leaves the naming as it is but uses our container. We can see that we actually get logs twice, once when the data is being fetched which renders our spinner, and one when we get the data back. If I reload the page I can see that loading is false, because we have the data in the cache, even after a ctrl+r. I refactored to use the ternary opeartor, but the syntax is actually longer and confusing unfortunately. Apollo handles our async request easily using this pattern. 
+				</p>
+				<p class="paragraph">
+					<strong>Query with Variables</strong>
+					<br>
+					
 				</p>
 			</li>
 		</ul>
