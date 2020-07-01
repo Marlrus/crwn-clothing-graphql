@@ -211,8 +211,28 @@
 					<br>
 					We want to dynamically get the value of the item in our mutation. We do this through the props we will get in our Component. We <code>const CollectionItemContainer = props => ( ... )</code> where we use <code>Mutation mutation={ADD_ITEM_TO_CART}</code> and inside the Fn we <code>{ addItemToCart => ( ... ) }</code> which we will use in our component <code>CollectionItem {...props} addItem={item => addItemToCart({ variables: { item } }) }</code> here we send the props to the component so that it can use them, and pass the addItem Fn. We use that format because our Resolvers use the variables object to get access to _args. Here we will send the object that it is expecting <code>{ variables: { item } }</code> which will match what the Resolver is expecting. In our CollectionPreview Component we <code>import { default as CollectionItem } from '../collection-item/collection-item.container';</code>. Now we can add items to the cart ourselves. 
 				</p>
+				<a id="07" href="#00">Index</a>
+				<h2 class="subtitle">CartItem Count With Apollo</h2>
 				<p class="paragraph">
-					We 
+					To alter the count as the items are upgrading, we don't use the Redux pattern of triggering another action, instead what we do is that we add that change into the mutation itself. In our index.js, we add <code>itemCount: 0</code> to our client.writeData(). We copy part of our code from cart.selectos and move it to our graphql/cart.utils.js file. Here we create <code>export const getCartItemCount = cartItems => ...</code> that uses reduce() to get the total quantity. Then inside our addItemToCart() mutation we <code>cache.writeQuery({ query: GET_ITEM_COUNT, data: { itemCount: getCartItemCount(newCartItems) })</code> which will set the itemCount every time that addItemToCart is triggered. 
+				</p>
+				<p class="paragraph">
+					<strong>Implementation</strong>
+					<br>
+					In our CartIconContainer we add the new query <code>const GET_ITEM_COUNT = gql` ... `</code> with the same format we have in our resolvers. Then we wrap our Mutation inside the Query, where <code>Query query={GET_ITEM_COUNT}</code> which gives us access to the data. We destructure what we want <code>({ data: {itemCount }})</code> and then pass it to our CartIcon which resides inside Mutation as <code>itemCount={itemCount}</code>. We then fully remove the Redux code in our CartIcon Component and our CartIcon number is being updated successfuly.  
+				</p>
+				<p class="paragraph">
+					<strong>compose() and graphql() and the HOC pattern</strong>
+					<br>
+					We import graphql() from react-apollo and flowRight() from lodash, which is just compose as we know it from Fn programming. Then we delete Query and Mutation. We remove them from our CartIconContainer as well. I decided to switch to <code>compose()</code> from Ramda instead of flowRight from lodash. I read into the Apollo docs for graphql() and it states <em>The graphql() Fn is the most important thing exported by react-apollo</em>. It allows us to use the HOC pattern that we use in Redux with connect(). At also allows us to define an intermediate Fn that hooks up to a component like we do with WithRouter. <code>const withTodoAppQuery = graphql(gql`query { ... }`)</code> which we can then use as <code>const ComponentWithData = withTodoAppQuery(Component)</code>. It can tage a config object that has a ton of props, look for more in the <a href="https://www.apollographql.com/docs/react/api/react-apollo/#graphqlquery-configcomponent">Apollo graphql() DOCS</a>. 
+				</p>
+				<p class="paragraph">
+					In our Component we declare our two queries TOGGLE_CART_HIDDEN, and GET_ITEM_COUNT and then we just have to pass the info as props to our component using graphql(). We use compose() to run both Fns through our component just like we did with connect() we <code>export default compose( ... )(CartIconContainer)</code> that has <code>graphql(GET_ITEM_COUNT), graphql(TOGGLE_CART_HIDDEN, { name: 'toggleCartHidden' })</code> this will pass the queries as props to our Component and we use the name option in the config object to change the standard name of our mutation. If not, we will get the name <em>mutate</em> by default. In our component we destructure the values <code>({ data: { itemCount }, toggleCartHidden })</code> which follows the standard graphql pattern of nested data inside data, and usese the custom name we provided for our mutation. Then we can use it in <code>CartIcon toggleCartHidden={toggleCartHidden} itemCount={itemCount}</code>. This pattern is cleaner and familiar to the Redux pattern. 
+				</p>
+				<a id="08" href="#00">Index</a>
+				<h2 class="subtitle">Should you use GraphQL</h2>
+				<p class="paragraph">
+					
 				</p>
 			</li>
 		</ul>
