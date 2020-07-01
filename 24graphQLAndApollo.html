@@ -192,7 +192,7 @@
 					Inside our resolvers we create our mutation <code>arrItemToCart: (_root, { item }, { cache }) => { ... }</code> here we ignore _root, destruture item from _args, and cache from _context. Then we copy our cart.utils.js from redux/ and put them in graphql/ . Here we import the Fn addItemToCart() from our utils. To use it we need the cart items and the item to be added, we create a new query <code>const GET_CART_ITEMS = gql`{ cartHidden @client }`</code>. We then use it in our mutation <code>const { cartItems } = cache.readQuery({ query: GET_CART_ITEMS })</code> which gives us the items from the cache. Then we <code>const newCartItems = addItemToCart(cartItems, item)</code> which is our util that uses these two params to get the array of items we want. Then we <code>cache.writeQuery({ query: GET_CART_ITEMS, data: { cartItems: newCartItems } })</code> and finally we <code>return newCartItems</code>. 
 				</p>
 				<p class="paragraph">
-					<strong>Using addItemToCart</strong>
+					<strong>Using toggleCartHidden</strong>
 					<br>
 					We go to CartDropdown and remove the Redux bindings. We also remove dispatch from our props and replace it with <code>toggleCartHidden</code> which we put on the onClick for our CustomButton. We create our cart-dropdown.container.jsx file where we import React, Mutation, Query, gql, and CartDropdown. We copy our mutation from the CartIcon TOGGLE_CART_HIDDEN, and import GET_CART_ITEMS from our resolvers. Then we create our <code>const CartDropdownContainer = () => ( ... )</code> which will have Mutation and Query inside of it. The order doesn't matter but we will do Mutation and then Query.
 				</p>
@@ -200,6 +200,19 @@
 					<strong>Mutation and Query</strong>
 					<br>
 					We start with <code>Mutation mutation={TOGGLE_CART_HIDDEN}</code> which gives us a Fn that has the value <code>{ toggleCartHidden => ( ... ) }</code> Inside we use Query <code>Query query={GET_CART_ITEMS}</code> which gives us access to the Data in the Fn which we destructure <code>{({ data: {cartItems } }) => ( ... )</code> that will return <code>CartDropdown cartItems={cartItems} toggleCartHidden={toggleCartHidden}</code> which will give it the props using our query and mutation. Inside our Header Component we <code>import { default as CartDropdown } from '../cart-dropdown/cart-dropdown.container';</code>. Now we set it so that if we go to the Cart, the cart dropdown will get hidden.
+				</p>
+				<p class="paragraph">
+					<strong>addItemToCart</strong>
+					<br>
+					We go to our <strong>CollectionItem Component</strong> and remove the Redux code. We create our container and import Mutation and all the things we need. We add our mutation <code>const ADD_ITEM_TO_CART = gql` ... `</code> Where we use the mutation name we have in our Resolver <code>mutation AddItemToCart($item: Item!) { ... }</code> which will recieve an item of type Item. And then inside <code>addItemToCart(item: $item) @client</code> which will execute the mutation in the client side, ergo the cache. 
+				</p>
+				<p class="paragraph">
+					<strong>Component</strong>
+					<br>
+					We want to dynamically get the value of the item in our mutation. We do this through the props we will get in our Component. We <code>const CollectionItemContainer = props => ( ... )</code> where we use <code>Mutation mutation={ADD_ITEM_TO_CART}</code> and inside the Fn we <code>{ addItemToCart => ( ... ) }</code> which we will use in our component <code>CollectionItem {...props} addItem={item => addItemToCart({ variables: { item } }) }</code> here we send the props to the component so that it can use them, and pass the addItem Fn. We use that format because our Resolvers use the variables object to get access to _args. Here we will send the object that it is expecting <code>{ variables: { item } }</code> which will match what the Resolver is expecting. In our CollectionPreview Component we <code>import { default as CollectionItem } from '../collection-item/collection-item.container';</code>. Now we can add items to the cart ourselves. 
+				</p>
+				<p class="paragraph">
+					We 
 				</p>
 			</li>
 		</ul>
