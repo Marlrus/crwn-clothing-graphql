@@ -156,6 +156,51 @@
 					<br>
 					Apollo works unidirectionally just like Redux. Our Components fire apollo requests. The requests are taken by our Resolvers (queries and mutations), here they have two routes: local, or external. If the query has been done and the data is already in the cache, Apollo will skip making a server request and just use the data in the Local Cache and pass the data to our component as porps. If the data is not there, it fires an External query or mutation, which can get/update/delete data on the backend, which then goes to our GraphQL Server, which then makes a SQL/NoSQL request to update the data in the DB. Then it gets a reply from the DB and returns it to the Resolver, which then passes or merges the data in the Local Cache and displays it in our components. 
 				</p>
+				<a id="05" href="#00">Index</a>
+				<h2 class="subtitle">Mutations on the Client</h2>
+				<p class="paragraph">
+					We have only queried data from our GraphQL server at the moment. However we can also use local data. It uses the same format that we have done until now. We want the code to be unified, and we want a single source of truth, therefore it would be better to use Apollo or Redux entirely. We go to our index.js and use <code>client.writeData({...})</code> which takes an obj that will be our initial state. We set <code>data: { cartHidden: true }</code> inside the object we pass to writeData(). We create graphql/resolvers.js. Inside we import gql and create type definitions for our mutations. We <code>export const typeDefs = gql` extend type Mutation { ToggleCartHidden: Boolean! } `</code> which follows the same pattern that we saw in our queries that tells GraphQL that this mutation will always return a boolean value. By convention type definitions are Capitalized. We do the <code>extend type Mutation</code> because we may have access to mutations from the backend, which we might use, this would give us access to the mutations we have defined in the backend and the mutations that we create. This can also be done to schemas. 
+				</p>
+				<p class="paragraph">
+					<strong>Resolvers</strong>
+					<br>
+					We create <code>export const Resolvers = { Mutation: { ... } }</code> which is the resolver. Inside we <code>toggleCartHidden: (_root, _args, _context, _info) =></code> This is the Fn that will handle our mutation to hide the cart. We get access to 4 objects in the Fns we have in our resolvers. This naming is convention is meant to be kept and is how the Apollo team has it in their DOCS to keep things standardized. <strong>_root</strong> represents the top level object that holds the actual type. In our App, _root would represent the collection type which holds all of the info regarding items. We would get access to the collection data using _root. If we are already at the top level, _root will be an empty object. <strong>_args</strong> represents all of the arguments that we might have access to inside our mutation, in our case we would have access to <code>{ title: String! }</code> which we used already to query the data by title. <strong>_context</strong> is what the Apollo client has access to: The client, and the cache. Since we only need the cache, we destructure it <code>{ cache }</code>. <strong>_info</strong> has info about the query or mutation, but we won't usually use it. We write it this way because that is how it is written in the backend, and Apollo wants consistency in how things are done.
+				</p>
+				<p class="paragraph">
+					<strong>Getting from cache</strong>
+					<br>
+					We define a query <code>const GET_CART_HIDDEN = gql` { cartHidden @client } `</code> which fetches the property from the cache. The <code>@client</code> is called a client directive, and it lets Apollo know that anything calling this query is looking at the local cache and not the backend. In our toggleCartHidden() we <code>const data = cache.readQuery({ query: GET_CART_HIDDEN })</code>. Here we get the data from our cache, using the query that we defined throuhg readQuery(). If we needed to use variables in our query, we could pass them using <code>variables: { ... }</code> as the second prop in our readQuery() object, the same way we did with title before. Then we do <code>return !cartHidden</code> this is our first Resolver. 
+				</p>
+				<p class="paragraph">
+					<strong>Using our Mutation</strong>
+					<br>
+					We <code>import { resolvers, typeDefs } from "./graphql/resolvers";</code> which we add to our <code>client</code> as <code>typeDefs, reslovers</code>. Now we need to switch the use of Redux to our new mutation. In our <strong>header.component.jsx</strong> we delete the selector for our cartHidden. We create a new file header.container.jsx. Here we import React, Query, Header, and GET_CART_HIDDEN, which we defined in our resolvers.js file. Then we <code>const HeaderContainer = () => ( ... )</code> where we use the Query Component <code>Query query={GET_CART_HIDDEN}</code>. Then we destructure cartHidden from data in the Fn <code>{({ data: {cartHidden} }) => ... }</code> where we return <code>Header hidden={cartHidden}</code>. Having done this we replace Header in our App.js with <code>import { default as Header } from './components/header/header.container';</code>.
+				</p>
+				<p class="apragraph">
+					<strong>Click to use mutation</strong>
+					<br>
+					We need to go to our CartIcon Component and have it use our mutation instead of the redux action. We remove the redux dispatch code and then create our container file. We do our imports, but instead of using the Query Component we use the Mutation Component. We use <code>const TOGGLE_CART_HIDDEN = gql` mutation ToggleCartHidden { ... } `</code> which is the name we gave it on our type definitions, and inside <code>toggleCartHidden @client</code> which makes our mutation use the cache. Then we define our CartIconContainer and use the Mutation component with <code>Mutation mutation={TOGGLE_CART_HIDDEN}</code> which will give us access to the result of our mutation in the Fn <code>{toggleCartHidden => CartIcon toggleCartHidden={toggleCartHidden}</code>. We then export it as the default. Then in the Header Component we <code>import { default as CartIcon } from '../cart-icon/cart-icon.container';</code> and our app is working as it was before now, toggling our cart hidden using Apollo instead of Redux. 
+				</p>
+				<a id="06" href="#00">Index</a>
+				<h2 class="subtitle">Adding Items with Apollo</h2>
+				<p class="paragraph">
+					We will modify the array of cart items to see how mutations work with data that is more complex than a simple boolean. We set the initial state in our cache on client.writeData() with <code>cartItems: []</code>. We will start with adding the quantity value that we have. This does not exist on the DB, therefore we must declare it in the front end, here we go to our typeDefs and <code>extend type item { quantity: Int }</code> which tells our front end that the item schema from the backend might have a quantity value in the frontend that is an Integer. Then inside extend type Mutation we add <code>AddItemToCart(item: Item!): [Item]!</code> which means that our mutation will get an item that is of type Item always, and return an array of Items. 
+				</p>
+				<p class="paragraph">
+					<strong>The Mutation</strong>
+					<br>
+					Inside our resolvers we create our mutation <code>arrItemToCart: (_root, { item }, { cache }) => { ... }</code> here we ignore _root, destruture item from _args, and cache from _context. Then we copy our cart.utils.js from redux/ and put them in graphql/ . Here we import the Fn addItemToCart() from our utils. To use it we need the cart items and the item to be added, we create a new query <code>const GET_CART_ITEMS = gql`{ cartHidden @client }`</code>. We then use it in our mutation <code>const { cartItems } = cache.readQuery({ query: GET_CART_ITEMS })</code> which gives us the items from the cache. Then we <code>const newCartItems = addItemToCart(cartItems, item)</code> which is our util that uses these two params to get the array of items we want. Then we <code>cache.writeQuery({ query: GET_CART_ITEMS, data: { cartItems: newCartItems } })</code> and finally we <code>return newCartItems</code>. 
+				</p>
+				<p class="paragraph">
+					<strong>Using addItemToCart</strong>
+					<br>
+					We go to CartDropdown and remove the Redux bindings. We also remove dispatch from our props and replace it with <code>toggleCartHidden</code> which we put on the onClick for our CustomButton. We create our cart-dropdown.container.jsx file where we import React, Mutation, Query, gql, and CartDropdown. We copy our mutation from the CartIcon TOGGLE_CART_HIDDEN, and import GET_CART_ITEMS from our resolvers. Then we create our <code>const CartDropdownContainer = () => ( ... )</code> which will have Mutation and Query inside of it. The order doesn't matter but we will do Mutation and then Query.
+				</p>
+				<p class="paragraph">
+					<strong>Mutation and Query</strong>
+					<br>
+					We start with <code>Mutation mutation={TOGGLE_CART_HIDDEN}</code> which gives us a Fn that has the value <code>{ toggleCartHidden => ( ... ) }</code> Inside we use Query <code>Query query={GET_CART_ITEMS}</code> which gives us access to the Data in the Fn which we destructure <code>{({ data: {cartItems } }) => ( ... )</code> that will return <code>CartDropdown cartItems={cartItems} toggleCartHidden={toggleCartHidden}</code> which will give it the props using our query and mutation. Inside our Header Component we <code>import { default as CartDropdown } from '../cart-dropdown/cart-dropdown.container';</code>. Now we set it so that if we go to the Cart, the cart dropdown will get hidden.
+				</p>
 			</li>
 		</ul>
 	</div>
